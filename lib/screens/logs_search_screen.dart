@@ -25,7 +25,8 @@ class _LogsSearchScreenState extends State<LogsSearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final logs = context.watch<EventProvider>().logs;
+    final eventProvider = context.watch<EventProvider>();
+    final logs = eventProvider.logs;
 
     final filtered = logs.where((e) {
       final q = _query.toLowerCase();
@@ -45,6 +46,20 @@ class _LogsSearchScreenState extends State<LogsSearchScreen> {
               controller: _searchCtrl,
               decoration: const InputDecoration(prefixIcon: Icon(Icons.search), hintText: 'Search by name or ID'),
               onChanged: (v) => setState(() => _query = v),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(child: Text('Loaded logs: ${logs.length}')),
+                TextButton(
+                  onPressed: () async {
+                    final message = await eventProvider.syncDummy();
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+                  },
+                  child: const Text('Sync Dummy'),
+                ),
+              ],
             ),
             const SizedBox(height: 12),
             Expanded(

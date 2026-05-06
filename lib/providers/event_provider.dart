@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../models/check_in_log_model.dart';
 import '../models/event_model.dart';
 import '../models/participant_model.dart';
+import '../services/storage_service.dart';
 
 class ActionResult {
   const ActionResult({
@@ -15,6 +16,12 @@ class ActionResult {
 }
 
 class EventProvider extends ChangeNotifier {
+  EventProvider(this._storageService) {
+    _restoreFromStorage();
+  }
+
+  final StorageService _storageService;
+
   EventModel? _event;
 
   final List<ParticipantModel> _participants = [
@@ -26,6 +33,10 @@ class EventProvider extends ChangeNotifier {
 
   final Set<String> _checkedInIds = <String>{};
   final List<CheckInLogModel> _logs = [];
+
+  bool _loaded = false;
+
+  bool get isLoaded => _loaded;
 
   EventModel? get event => _event;
   List<ParticipantModel> get participants => List.unmodifiable(_participants);
@@ -50,6 +61,7 @@ class EventProvider extends ChangeNotifier {
     required DateTime date,
   }) {
     _event = EventModel(name: name.trim(), capacity: capacity, date: date);
+    _persist();
     notifyListeners();
   }
 
@@ -103,6 +115,7 @@ class EventProvider extends ChangeNotifier {
       ),
     );
 
+    _persist();
     notifyListeners();
     return ActionResult(
       success: true,
@@ -128,4 +141,113 @@ class EventProvider extends ChangeNotifier {
       participantId: pending.id,
     );
   }
+
+  Future<String> syncDummy() => _storageService.syncDummy();
+
+  Future<void> loadSavedData() async {
+    if (_loaded) return;
+    await _restoreFromStorage();
+  }
+
+  Future<void> clearAllData() async {
+    _event = null;
+    _participants
+      ..clear()
+      ..addAll(_defaultParticipants());
+    _checkedInIds.clear();
+    _logs.clear();
+    await _storageService.clearState();
+    notifyListeners();
+  }
+
+  Future<void> _restoreFromStorage() async {
+    final state = _storageService.readState();
+
+    final eventMap = state['event'];
+    if (eventMap is Map) {
+      _event = EventModel(
+        name: eventMap['name'] as String? ?? '',
+        capacity: (eventMap['capacity'] as num?)?.toInt() ?? 0,
+        date: DateTime.tryParse(eventMap['date'] as String? ?? '') ?? DateTime.now(),
+      );
+    }
+
+    final participantList = state['participants'];
+    if (participantList is List) {
+      _participants
+        ..clear()
+        ..addAll(
+          participantList.whereType<Map>().map(
+                (item) => ParticipantModel(
+                  id: item['id']?.toString() ?? '',
+                  name: item['name']?.toString() ?? '',
+                ),
+              ),
+        );
+    }
+
+    final checkedInList = state['checkedInIds'];
+    if (checkedInList is List) {
+      _checkedInIds
+        ..clear()
+        ..addAll(checkedInList.map((value) => value.toString().toUpperCase()));
+    }
+
+    final logList = state['logs'];
+    if (logList is List) {
+      _logs
+        ..clear()
+        ..addAll(
+          logList.whereType<Map>().map(
+                (item) => CheckInLogModel(
+                  participantId: item['participantId']?.toString() ?? '',
+                  participantName: item['participantName']?.toString() ?? '',
+                  time: DateTime.tryParse(item['time']?.toString() ?? '') ?? DateTime.now(),
+                ),
+              ),
+        );
+    }
+
+    _loaded = true;
+    notifyListeners();
+  }
+
+  Future<void> _persist() async {
+    final state = <String, dynamic>{
+      'event': _event == null
+          ? null
+          : <String, dynamic>{
+              'name': _event!.name,
+              'capacity': _event!.capacity,
+              'date': _event!.date.toIso8601String(),
+            },
+      'participants': _participants
+          .map(
+            (participant) => <String, dynamic>{
+              'id': participant.id,
+              'name': participant.name,
+            },
+          )
+          .toList(),
+      'checkedInIds': _checkedInIds.toList(),
+      'logs': _logs
+          .map(
+            (log) => <String, dynamic>{
+              'participantId': log.participantId,
+              'participantName': log.participantName,
+              'time': log.time.toIso8601String(),
+            },
+          )
+          .toList(),
+    };
+
+    await _storageService.writeState(state);
+  }
+
+  List<ParticipantModel> _defaultParticipants() => [
+        const ParticipantModel(id: '23DIT023', name: 'Rahul Parekh'),
+        const ParticipantModel(id: '23DIT1045', name: 'Priya Shah'),
+        const ParticipantModel(id: '23DIT1088', name: 'Amit Kumar'),
+        const ParticipantModel(id: '23DIT1101', name: 'Sneha Reddy'),
+      ];
 }
