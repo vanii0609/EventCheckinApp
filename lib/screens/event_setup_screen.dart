@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../providers/event_provider.dart';
 import '../widgets/responsive_center.dart';
 
 class EventSetupScreen extends StatefulWidget {
@@ -35,6 +37,8 @@ class _EventSetupScreenState extends State<EventSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final eventProvider = context.watch<EventProvider>();
+
     return ResponsiveCenter(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -79,11 +83,35 @@ class _EventSetupScreenState extends State<EventSetupScreen> {
               ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState?.validate() ?? false) {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Event saved (UI only)')));
+                    eventProvider.createEvent(
+                      name: _nameCtrl.text,
+                      capacity: int.parse(_capacityCtrl.text),
+                      date: _eventDate ?? DateTime.now(),
+                    );
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Event saved successfully.')),
+                    );
                   }
                 },
                 child: const Text('Save Event'),
               ),
+              const SizedBox(height: 16),
+              if (eventProvider.event != null)
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Current Event'),
+                        const SizedBox(height: 6),
+                        Text('Name: ${eventProvider.event!.name}'),
+                        Text('Capacity: ${eventProvider.event!.capacity}'),
+                        Text('Checked-in: ${eventProvider.checkedInCount}'),
+                      ],
+                    ),
+                  ),
+                ),
             ],
           ),
         ),

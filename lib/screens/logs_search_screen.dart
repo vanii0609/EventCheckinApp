@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
+import '../providers/event_provider.dart';
 import '../widgets/responsive_center.dart';
 
 class LogsSearchScreen extends StatefulWidget {
@@ -12,13 +15,6 @@ class LogsSearchScreen extends StatefulWidget {
 class _LogsSearchScreenState extends State<LogsSearchScreen> {
   final _searchCtrl = TextEditingController();
 
-  final List<Map<String, String>> _sample = [
-    {'name': 'Palak Sankharva', 'id': '23DIT065', 'time': '10:02 AM'},
-    {'name': 'Dhani Patel', 'id': '23DIT042', 'time': '10:05 AM'},
-    {'name': 'Vani Makadia', 'id': '23DIT031', 'time': '10:12 AM'},
-    {'name': 'Esha Patel', 'id': '23DIT043', 'time': '10:20 AM'},
-  ];
-
   String _query = '';
 
   @override
@@ -29,9 +25,12 @@ class _LogsSearchScreenState extends State<LogsSearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final filtered = _sample.where((e) {
+    final logs = context.watch<EventProvider>().logs;
+
+    final filtered = logs.where((e) {
       final q = _query.toLowerCase();
-      return e['name']!.toLowerCase().contains(q) || e['id']!.toLowerCase().contains(q);
+      return e.participantName.toLowerCase().contains(q) ||
+          e.participantId.toLowerCase().contains(q);
     }).toList();
 
     return ResponsiveCenter(
@@ -55,8 +54,10 @@ class _LogsSearchScreenState extends State<LogsSearchScreen> {
                   final item = filtered[i];
                   return ListTile(
                     leading: const CircleAvatar(child: Icon(Icons.person)),
-                    title: Text(item['name']!),
-                    subtitle: Text('${item['id']} • ${item['time']}'),
+                    title: Text(item.participantName),
+                    subtitle: Text(
+                      '${item.participantId} • ${DateFormat('dd MMM, hh:mm a').format(item.time)}',
+                    ),
                   );
                 },
               ),

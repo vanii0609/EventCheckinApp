@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../providers/event_provider.dart';
 import '../widgets/responsive_center.dart';
 
 class DashboardScreen extends StatelessWidget {
@@ -7,12 +9,13 @@ class DashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Dummy numbers for UI presentation
-    final total = 250;
-    final checkedIn = 72;
+    final eventProvider = context.watch<EventProvider>();
+
+    final total = eventProvider.totalCapacity;
+    final checkedIn = eventProvider.checkedInCount;
     final remaining = total - checkedIn;
-    final percent = (checkedIn / total) * 100;
-    final status = percent < 60 ? 'Safe' : (percent < 90 ? 'Moderate' : 'Full');
+    final percent = total == 0 ? 0.0 : (checkedIn / total) * 100;
+    final status = eventProvider.crowdStatus;
 
     return ResponsiveCenter(
       child: Padding(
@@ -44,7 +47,7 @@ class DashboardScreen extends StatelessWidget {
                   children: [
                     Text('Crowd Status', style: Theme.of(context).textTheme.titleMedium),
                     const SizedBox(height: 8),
-                    LinearProgressIndicator(value: checkedIn / total),
+                    LinearProgressIndicator(value: total == 0 ? 0 : checkedIn / total),
                     const SizedBox(height: 8),
                     Text('Status: $status'),
                     Text('Occupancy: ${percent.toStringAsFixed(1)}%'),

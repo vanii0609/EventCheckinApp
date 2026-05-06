@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import 'providers/event_provider.dart';
 import 'screens/check_in_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/event_setup_screen.dart';
@@ -11,21 +13,24 @@ class SmartEventCheckInApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Smart Event Check-in & Crowd Management',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueGrey),
-        useMaterial3: true,
+    return ChangeNotifierProvider(
+      create: (_) => EventProvider(),
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Smart Event Check-in & Crowd Management',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueGrey),
+          useMaterial3: true,
+        ),
+        initialRoute: '/',
+        routes: {
+          '/': (_) => const HomeShell(),
+          '/setup': (_) => const EventSetupScreen(),
+          '/checkin': (_) => const CheckInScreen(),
+          '/dashboard': (_) => const DashboardScreen(),
+          '/logs': (_) => const LogsSearchScreen(),
+        },
       ),
-      initialRoute: '/',
-      routes: {
-        '/': (_) => const HomeShell(),
-        '/setup': (_) => const EventSetupScreen(),
-        '/checkin': (_) => const CheckInScreen(),
-        '/dashboard': (_) => const DashboardScreen(),
-        '/logs': (_) => const LogsSearchScreen(),
-      },
     );
   }
 }

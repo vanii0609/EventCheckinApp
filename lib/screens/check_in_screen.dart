@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../providers/event_provider.dart';
 import '../widgets/responsive_center.dart';
 
 class CheckInScreen extends StatefulWidget {
@@ -23,6 +25,8 @@ class _CheckInScreenState extends State<CheckInScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final eventProvider = context.watch<EventProvider>();
+
     return ResponsiveCenter(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -51,7 +55,14 @@ class _CheckInScreenState extends State<CheckInScreen> {
                   ElevatedButton(
                     onPressed: () {
                       if (_formKey.currentState?.validate() ?? false) {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Checked in ${_nameCtrl.text} (UI only)')));
+                        final result = eventProvider.manualCheckIn(
+                          participantName: _nameCtrl.text,
+                          participantId: _idCtrl.text,
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(result.message)),
+                        );
+                        if (!result.success) return;
                         _nameCtrl.clear();
                         _idCtrl.clear();
                       }
@@ -64,11 +75,27 @@ class _CheckInScreenState extends State<CheckInScreen> {
             const SizedBox(height: 16),
             OutlinedButton.icon(
               onPressed: () {
-                // Placeholder for QR scanner; real scanner will be wired in Phase 4
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Open QR scanner (placeholder)')));
+                final result = eventProvider.checkInWithQrPlaceholder();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(result.message)),
+                );
               },
               icon: const Icon(Icons.qr_code),
               label: const Text('Scan QR (placeholder)'),
+            ),
+            const SizedBox(height: 12),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Event capacity: ${eventProvider.totalCapacity}'),
+                    Text('Checked-in: ${eventProvider.checkedInCount}'),
+                    Text('Remaining: ${eventProvider.remaining}'),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
