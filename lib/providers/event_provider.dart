@@ -18,10 +18,10 @@ class EventProvider extends ChangeNotifier {
   EventModel? _event;
 
   final List<ParticipantModel> _participants = [
-    const ParticipantModel(id: 'STU1023', name: 'Rahul Patel'),
-    const ParticipantModel(id: 'STU1045', name: 'Priya Shah'),
-    const ParticipantModel(id: 'STU1088', name: 'Amit Kumar'),
-    const ParticipantModel(id: 'STU1101', name: 'Sneha Reddy'),
+    const ParticipantModel(id: '23DIT023', name: 'Rahul Parekh'),
+    const ParticipantModel(id: '23DIT1045', name: 'Priya Shah'),
+    const ParticipantModel(id: '23DIT1088', name: 'Amit Kumar'),
+    const ParticipantModel(id: '23DIT1101', name: 'Sneha Reddy'),
   ];
 
   final Set<String> _checkedInIds = <String>{};
