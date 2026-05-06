@@ -4,6 +4,7 @@ import 'screens/check_in_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/event_setup_screen.dart';
 import 'screens/logs_search_screen.dart';
+import 'screens/home_shell.dart';
 
 class SmartEventCheckInApp extends StatelessWidget {
   const SmartEventCheckInApp({super.key});
@@ -17,9 +18,9 @@ class SmartEventCheckInApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueGrey),
         useMaterial3: true,
       ),
-      initialRoute: '/dashboard',
+      initialRoute: '/',
       routes: {
-        '/': (_) => const EventSetupScreen(),
+        '/': (_) => const HomeShell(),
         '/setup': (_) => const EventSetupScreen(),
         '/checkin': (_) => const CheckInScreen(),
         '/dashboard': (_) => const DashboardScreen(),
